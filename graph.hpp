@@ -3,6 +3,7 @@
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace strukdat {
 
@@ -50,6 +51,7 @@ class graph {
 
   void remove_vertex(const VertexType &val) {
     // TODO: Implementasikan!
+    _adj_list.erase(val);
   }
 
   /**
@@ -60,6 +62,8 @@ class graph {
    */
   void add_edge(const VertexType &val1, const VertexType val2) {
     // TODO: Implementasikan!
+    _adj_list[val1].insert(val2);
+    _adj_list[val2].insert(val1);
   }
 
   /**
@@ -69,6 +73,8 @@ class graph {
    */
   void remove_edge(const VertexType &val1, const VertexType &val2) {
     // TODO: Implementasikan!
+    _adj_list[val1].erase(val2);
+    _adj_list[val2].erase(val1);
   }
 
   /**
@@ -81,6 +87,7 @@ class graph {
    */
   size_t order() const {
     // TODO: Implementasikan!
+    return _adj_list.size();
   }
 
   /**
@@ -93,6 +100,9 @@ class graph {
    */
   bool is_edge(const VertexType &val1, const VertexType &val2) const {
     // TODO: Implementasikan!
+    if(_adj_list.at(val1).find(val2) == _adj_list.at(val1).end()) return false;
+    else if(_adj_list.at(val2).find(val1) == _adj_list.at(val2).end()) return false;
+    else return true;
   }
 
   /**
@@ -101,9 +111,31 @@ class graph {
    * @param root vertex awal
    * @param func fungsi yang akan dieksekusi pada setiap vertex
    */
-  void bfs(const VertexType &root,
-           std::function<void(const VertexType &)> func) const {
+  void bfs(const VertexType &root, std::function<void(const VertexType &)> func) const {
     // TODO: Implementasikan!
+    std::unordered_map<VertexType, bool> current;
+    for(auto x = _adj_list.begin(); x != _adj_list.end(); x++){
+      current.insert(std::make_pair(x->first, false));
+    }
+
+    std::vector<VertexType> queue;
+    queue.push_back(root);
+    current[root] = true;
+
+    while(!queue.empty()){
+      VertexType pHelp = queue.front();
+      queue.erase(queue.begin());
+
+      func(pHelp);
+
+      for(auto x = _adj_list.at(pHelp).begin(); x != _adj_list.at(pHelp).end(); x++){
+        if(!current[*x]){
+          current[*x] = true;
+          queue.push_back(*x);
+        }
+      }
+    }
+
   }
 
   /**
@@ -112,9 +144,38 @@ class graph {
    * @param root vertex awal
    * @param func fungsi yang akan dieksekusi pada setiap vertex
    */
-  void dfs(const VertexType &root,
-           std::function<void(const VertexType &)> func) const {
+  void dfs(const VertexType &root, std::function<void(const VertexType &)> func) const {
     // TODO: Implementasikan!
+    std::unordered_map<VertexType, bool> current;
+    for(auto x = _adj_list.begin(); x != _adj_list.end(); x++){
+      current.insert(std::make_pair(x->first, false));
+    }
+    std::vector<VertexType> stack;
+    stack.insert(stack.begin(), root);
+
+    while(!stack.empty()){
+      VertexType pHelp = stack.front();
+
+      if(!current[pHelp]){
+        current[pHelp] = true;
+        func(pHelp);
+      }
+
+      auto i = _adj_list.at(pHelp).begin();
+      while(i != _adj_list.at(pHelp).end()){
+        if(!current[*i]){
+          pHelp = *i;
+          stack.insert(stack.begin(), pHelp);
+          break;
+        }
+        i++;
+      }
+
+      if(i == _adj_list.at(pHelp).end()){
+        pHelp = stack.front();
+        stack.erase(stack.begin());
+      }
+    }
   }
 
  private:
